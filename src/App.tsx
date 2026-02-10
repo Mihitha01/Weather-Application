@@ -37,6 +37,12 @@ function App() {
 
     try {
       const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+      
+      // Check if API key is missing or still has the placeholder value
+      if (!API_KEY || API_KEY === 'your_api_key_here') {
+        throw new Error('⚠️ API key not configured! Please add your OpenWeatherMap API key to the .env file. Get one free at https://openweathermap.org/api');
+      }
+
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
       );
@@ -45,7 +51,13 @@ function App() {
         if (response.status === 404) {
           throw new Error('City not found. Please try another city.');
         }
-        throw new Error('Failed to fetch weather data. Please try again.');
+        if (response.status === 401) {
+          throw new Error('⚠️ Invalid API key. Please check your .env file and make sure you have a valid OpenWeatherMap API key.');
+        }
+        if (response.status === 429) {
+          throw new Error('⚠️ API rate limit exceeded. Please wait a moment and try again.');
+        }
+        throw new Error(`Failed to fetch weather data (Error ${response.status}). Please try again.`);
       }
 
       const data = await response.json();
