@@ -38,6 +38,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const [unit, setUnit] = useState<'metric' | 'imperial'>('metric');
   const [searchHistory, setSearchHistory] = useState<string[]>(() => {
     const saved = localStorage.getItem('weatherSearchHistory');
     return saved ? JSON.parse(saved) : [];
@@ -113,6 +114,8 @@ function App() {
         pressure: data.main.pressure,
         visibility: data.visibility / 1000, // Convert to km
       });
+
+      addToHistory(data.name);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -168,18 +171,38 @@ function App() {
     }`}>
       <BackgroundAnimation weatherType={weatherData?.weatherMain || 'clear'} darkMode={darkMode} />
 
-      {/* Dark Mode Toggle */}
-      <button
-        onClick={() => setDarkMode(!darkMode)}
-        className="absolute top-6 right-6 z-20 p-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 hover:bg-white/30 transition-all duration-300 shadow-lg group"
-        aria-label="Toggle dark mode"
-      >
-        {darkMode ? (
-          <Sun className="w-6 h-6 text-yellow-300 group-hover:rotate-180 transition-transform duration-500" />
-        ) : (
-          <Moon className="w-6 h-6 text-gray-700 group-hover:rotate-12 transition-transform duration-300" />
-        )}
-      </button>
+      {/* Controls */}
+      <div className="absolute top-6 right-6 z-20 flex gap-3">
+        {/* Unit Toggle */}
+        <button
+          onClick={() => setUnit(unit === 'metric' ? 'imperial' : 'metric')}
+          className={`w-12 h-12 rounded-full backdrop-blur-md border transition-all duration-300 shadow-lg font-bold flex items-center justify-center ${
+            darkMode 
+              ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' 
+              : 'bg-white/30 border-white/40 text-gray-800 hover:bg-white/50'
+          }`}
+          aria-label="Toggle unit"
+        >
+          {unit === 'metric' ? '°C' : '°F'}
+        </button>
+
+        {/* Dark Mode Toggle */}
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className={`w-12 h-12 rounded-full backdrop-blur-md border transition-all duration-300 shadow-lg flex items-center justify-center group ${
+            darkMode 
+              ? 'bg-white/10 border-white/20 hover:bg-white/20' 
+              : 'bg-white/30 border-white/40 hover:bg-white/50'
+          }`}
+          aria-label="Toggle dark mode"
+        >
+          {darkMode ? (
+            <Sun className="w-6 h-6 text-yellow-300 group-hover:rotate-180 transition-transform duration-500" />
+          ) : (
+            <Moon className="w-6 h-6 text-gray-700 group-hover:rotate-12 transition-transform duration-300" />
+          )}
+        </button>
+      </div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
@@ -198,6 +221,28 @@ function App() {
             loading={loading} 
             darkMode={darkMode} 
           />
+
+          {/* Search History */}
+          {searchHistory.length > 0 && (
+            <div className="mt-4 flex flex-wrap justify-center gap-2 fade-in">
+              <span className={`text-xs flex items-center gap-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Recent:
+              </span>
+              {searchHistory.map((city) => (
+                <button
+                  key={city}
+                  onClick={() => fetchWeather(city)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 shadow-sm ${
+                    darkMode
+                      ? 'bg-white/10 hover:bg-white/20 text-gray-200 border border-white/10'
+                      : 'bg-white/40 hover:bg-white/60 text-gray-700 border border-white/20'
+                  }`}
+                >
+                  {city}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -220,7 +265,7 @@ function App() {
 
           {/* Weather Card */}
           {weatherData && !loading && (
-            <WeatherCard data={weatherData} darkMode={darkMode} />
+            <WeatherCard data={weatherData} darkMode={darkMode} unit={unit} />
           )}
 
           {/* Instructions */}
@@ -235,7 +280,7 @@ function App() {
 
         {/* Forecast Card */}
         {forecastData.length > 0 && !loading && (
-          <ForecastCard data={forecastData} darkMode={darkMode} />
+          <ForecastCard data={forecastData} darkMode={darkMode} unit={unit} />
         )}
       </div>
     </div>

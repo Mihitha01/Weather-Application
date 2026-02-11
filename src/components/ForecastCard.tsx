@@ -16,13 +16,20 @@ interface ForecastData {
 interface ForecastProps {
   data: ForecastData[];
   darkMode: boolean;
+  unit: 'metric' | 'imperial';
 }
 
-const ForecastCard: React.FC<ForecastProps> = ({ data, darkMode }) => {
+const ForecastCard: React.FC<ForecastProps> = ({ data, darkMode, unit }) => {
   // Helper to format date
   const getDayName = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { weekday: 'short' });
+  };
+
+  const getTemp = (temp: number) => {
+    return unit === 'metric' 
+      ? Math.round(temp)
+      : Math.round((temp * 9 / 5) + 32);
   };
 
   return (
@@ -51,7 +58,7 @@ const ForecastCard: React.FC<ForecastProps> = ({ data, darkMode }) => {
               />
             </div>
             <p className={`text-center text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-              {Math.round(day.main.temp)}°C
+              {getTemp(day.main.temp)}°{unit === 'metric' ? 'C' : 'F'}
             </p>
             <p className={`text-center text-xs capitalize ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               {day.weather[0].description}

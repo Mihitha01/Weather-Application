@@ -17,6 +17,7 @@ interface WeatherData {
 interface WeatherCardProps {
   data: WeatherData;
   darkMode: boolean;
+  unit: 'metric' | 'imperial';
 }
 
 const getWeatherEmoji = (weatherMain: string): string => {
@@ -34,7 +35,19 @@ const getWeatherEmoji = (weatherMain: string): string => {
   return emojiMap[weatherMain] || '🌤️';
 };
 
-function WeatherCard({ data, darkMode }: WeatherCardProps) {
+function WeatherCard({ data, darkMode, unit }: WeatherCardProps) {
+  const temperature = unit === 'metric' 
+    ? data.temperature 
+    : Math.round((data.temperature * 9 / 5) + 32);
+  
+  const feelsLike = unit === 'metric' 
+    ? data.feelsLike 
+    : Math.round((data.feelsLike * 9 / 5) + 32);
+
+  const windSpeed = unit === 'metric' 
+    ? data.windSpeed 
+    : parseFloat((data.windSpeed * 2.237).toFixed(1));
+
   return (
     <div className="mt-8 fade-in">
       <div className={`p-8 rounded-3xl backdrop-blur-xl border shadow-2xl transition-all duration-300 ${
@@ -59,7 +72,7 @@ function WeatherCard({ data, darkMode }: WeatherCardProps) {
         {/* Temperature */}
         <div className="text-center mb-4">
           <div className={`text-7xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-            {data.temperature}°C
+            {temperature}°{unit === 'metric' ? 'C' : 'F'}
           </div>
           <p className={`text-xl mt-2 capitalize ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
             {data.description}
@@ -98,7 +111,7 @@ function WeatherCard({ data, darkMode }: WeatherCardProps) {
               Wind Speed
             </p>
             <p className={`text-center text-xl md:text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-              {data.windSpeed} m/s
+              {windSpeed} {unit === 'metric' ? 'm/s' : 'mph'}
             </p>
           </div>
 
@@ -115,7 +128,7 @@ function WeatherCard({ data, darkMode }: WeatherCardProps) {
               Feels Like
             </p>
             <p className={`text-center text-xl md:text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-              {data.feelsLike}°C
+              {feelsLike}°{unit === 'metric' ? 'C' : 'F'}
             </p>
           </div>
 
