@@ -1,4 +1,4 @@
-import { Wind, Droplets } from 'lucide-react';
+import { Wind, Droplets, Thermometer, Gauge, Eye } from 'lucide-react';
 
 interface WeatherData {
   city: string;
@@ -9,6 +9,9 @@ interface WeatherData {
   windSpeed: number;
   icon: string;
   weatherMain: string;
+  feelsLike: number;
+  pressure: number;
+  visibility: number;
 }
 
 interface WeatherCardProps {
@@ -63,8 +66,9 @@ function WeatherCard({ data, darkMode }: WeatherCardProps) {
           </p>
         </div>
 
-        {/* Humidity & Wind Speed */}
-        <div className="grid grid-cols-2 gap-4 mt-8">
+        {/* Weather Details Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
+          {/* Humidity */}
           <div className={`p-4 rounded-2xl backdrop-blur-md border ${
             darkMode
               ? 'bg-white/5 border-white/10'
@@ -73,14 +77,15 @@ function WeatherCard({ data, darkMode }: WeatherCardProps) {
             <div className="flex items-center justify-center mb-2">
               <Droplets className={`w-6 h-6 ${darkMode ? 'text-blue-300' : 'text-blue-600'}`} />
             </div>
-            <p className={`text-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className={`text-center text-xs md:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Humidity
             </p>
-            <p className={`text-center text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+            <p className={`text-center text-xl md:text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
               {data.humidity}%
             </p>
           </div>
 
+          {/* Wind Speed */}
           <div className={`p-4 rounded-2xl backdrop-blur-md border ${
             darkMode
               ? 'bg-white/5 border-white/10'
@@ -89,11 +94,62 @@ function WeatherCard({ data, darkMode }: WeatherCardProps) {
             <div className="flex items-center justify-center mb-2">
               <Wind className={`w-6 h-6 ${darkMode ? 'text-teal-300' : 'text-teal-600'}`} />
             </div>
-            <p className={`text-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className={`text-center text-xs md:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Wind Speed
             </p>
-            <p className={`text-center text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+            <p className={`text-center text-xl md:text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
               {data.windSpeed} m/s
+            </p>
+          </div>
+
+          {/* Feels Like */}
+          <div className={`p-4 rounded-2xl backdrop-blur-md border ${
+            darkMode
+              ? 'bg-white/5 border-white/10'
+              : 'bg-white/40 border-white/30'
+          }`}>
+            <div className="flex items-center justify-center mb-2">
+              <Thermometer className={`w-6 h-6 ${darkMode ? 'text-red-300' : 'text-red-600'}`} />
+            </div>
+            <p className={`text-center text-xs md:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Feels Like
+            </p>
+            <p className={`text-center text-xl md:text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              {data.feelsLike}°C
+            </p>
+          </div>
+
+          {/* Pressure */}
+          <div className={`p-4 rounded-2xl backdrop-blur-md border ${
+            darkMode
+              ? 'bg-white/5 border-white/10'
+              : 'bg-white/40 border-white/30'
+          }`}>
+            <div className="flex items-center justify-center mb-2">
+              <Gauge className={`w-6 h-6 ${darkMode ? 'text-purple-300' : 'text-purple-600'}`} />
+            </div>
+            <p className={`text-center text-xs md:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Pressure
+            </p>
+            <p className={`text-center text-xl md:text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              {data.pressure} hPa
+            </p>
+          </div>
+
+          {/* Visibility */}
+          <div className={`p-4 rounded-2xl backdrop-blur-md border col-span-2 md:col-span-1 ${
+            darkMode
+              ? 'bg-white/5 border-white/10'
+              : 'bg-white/40 border-white/30'
+          }`}>
+            <div className="flex items-center justify-center mb-2">
+              <Eye className={`w-6 h-6 ${darkMode ? 'text-yellow-300' : 'text-yellow-600'}`} />
+            </div>
+            <p className={`text-center text-xs md:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Visibility
+            </p>
+            <p className={`text-center text-xl md:text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              {data.visibility} km
             </p>
           </div>
         </div>

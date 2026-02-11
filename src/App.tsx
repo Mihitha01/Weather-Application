@@ -14,6 +14,9 @@ interface WeatherData {
   windSpeed: number;
   icon: string;
   weatherMain: string;
+  feelsLike: number;
+  pressure: number;
+  visibility: number;
 }
 
 interface ForecastData {
@@ -35,10 +38,25 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>(() => {
+    const saved = localStorage.getItem('weatherSearchHistory');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('weatherSearchHistory', JSON.stringify(searchHistory));
+  }, [searchHistory]);
+
+  const addToHistory = (city: string) => {
+    setSearchHistory(prev => {
+      const filtered = prev.filter(c => c.toLowerCase() !== city.toLowerCase());
+      return [city, ...filtered].slice(0, 5);
+    });
+  };
 
   const fetchWeatherData = async (queryParams: string) => {
     setLoading(true);
@@ -91,6 +109,9 @@ function App() {
         windSpeed: data.wind.speed,
         icon: data.weather[0].icon,
         weatherMain: data.weather[0].main.toLowerCase(),
+        feelsLike: Math.round(data.main.feels_like),
+        pressure: data.main.pressure,
+        visibility: data.visibility / 1000, // Convert to km
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
