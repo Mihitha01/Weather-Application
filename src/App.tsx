@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Wind, Droplets, Loader2, Sun, Moon } from 'lucide-react';
 import WeatherCard from './components/WeatherCard';
+import ForecastCard from './components/ForecastCard';
 import SearchBar from './components/SearchBar';
 import BackgroundAnimation from './components/BackgroundAnimation';
 
@@ -15,8 +16,22 @@ interface WeatherData {
   weatherMain: string;
 }
 
+interface ForecastData {
+  dt: number;
+  main: {
+    temp: number;
+  };
+  weather: {
+    icon: string;
+    description: string;
+    main: string;
+  }[];
+  dt_txt: string;
+}
+
 function App() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [forecastData, setForecastData] = useState<ForecastData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [darkMode, setDarkMode] = useState(false);
@@ -25,15 +40,11 @@ function App() {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
-  const fetchWeather = async (city: string) => {
-    if (!city.trim()) {
-      setError('Please enter a city name');
-      return;
-    }
-
+  const fetchWeatherData = async (queryParams: string) => {
     setLoading(true);
     setError('');
     setWeatherData(null);
+    setForecastData([]);
 
     try {
       const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
@@ -43,24 +54,33 @@ function App() {
         throw new Error('⚠️ API key not configured! Please add your OpenWeatherMap API key to the .env file. Get one free at https://openweathermap.org/api');
       }
 
-      const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
-      );
+      const [weatherResponse, forecastResponse] = await Promise.all([
+        fetch(`https://api.openweathermap.org/data/2.5/weather?${queryParams}&appid=${API_KEY}&units=metric`),
+        fetch(`https://api.openweathermap.org/data/2.5/forecast?${queryParams}&appid=${API_KEY}&units=metric`)
+      ]);
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('City not found. Please try another city.');
+      if (!weatherResponse.ok) {
+        if (weatherResponse.status === 404) {
+          throw new Error('Location not found. Please try again.');
         }
-        if (response.status === 401) {
+        if (weatherResponse.status === 401) {
           throw new Error('⚠️ Invalid API key. Please check your .env file and make sure you have a valid OpenWeatherMap API key.');
         }
-        if (response.status === 429) {
+        if (weatherResponse.status === 429) {
           throw new Error('⚠️ API rate limit exceeded. Please wait a moment and try again.');
         }
-        throw new Error(`Failed to fetch weather data (Error ${response.status}). Please try again.`);
+        throw new Error(`Failed to fetch weather data (Error ${weatherResponse.status}). Please try again.`);
       }
 
-      const data = await response.json();
+      const data = await weatherResponse.json();
+
+      if (forecastResponse.ok) {
+        const forecastJson = await forecastResponse.json();
+        const dailyData = forecastJson.list.filter((reading: any) => 
+          reading.dt_txt.includes('12:00:00')
+        );
+        setForecastData(dailyData);
+      }
 
       setWeatherData({
         city: data.name,
@@ -76,6 +96,36 @@ function App() {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchWeather = (city: string) => {
+    if (!city.trim()) {
+      setError('Please enter a city name');
+      return;
+    }
+    fetchWeatherData(`q=${city}`);
+  };
+
+  const fetchLocationWeather = () => {
+    if (navigator.geolocation) {
+      setLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          fetchWeatherData(`lat=${latitude}&lon=${longitude}`);
+        },
+        (error) => {
+          setLoading(false);
+          if (error.code === error.PERMISSION_DENIED) {
+            setError('Location permission denied. Please enable location access.');
+          } else {
+            setError('Unable to retrieve location.');
+          }
+        }
+      );
+    } else {
+      setError('Geolocation is not supported by your browser.');
     }
   };
 
@@ -121,7 +171,12 @@ function App() {
           </h1>
 
           {/* Search Bar */}
-          <SearchBar onSearch={fetchWeather} loading={loading} darkMode={darkMode} />
+          <SearchBar 
+            onSearch={fetchWeather} 
+            onLocation={fetchLocationWeather}
+            loading={loading} 
+            darkMode={darkMode} 
+          />
 
           {/* Error Message */}
           {error && (
@@ -156,6 +211,11 @@ function App() {
             </div>
           )}
         </div>
+
+        {/* Forecast Card */}
+        {forecastData.length > 0 && !loading && (
+          <ForecastCard data={forecastData} darkMode={darkMode} />
+        )}
       </div>
     </div>
   );

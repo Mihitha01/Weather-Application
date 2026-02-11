@@ -1,13 +1,14 @@
 import { useState, FormEvent } from 'react';
-import { Search } from 'lucide-react';
+import { Search, MapPin } from 'lucide-react';
 
 interface SearchBarProps {
   onSearch: (city: string) => void;
+  onLocation: () => void;
   loading: boolean;
   darkMode: boolean;
 }
 
-function SearchBar({ onSearch, loading, darkMode }: SearchBarProps) {
+function SearchBar({ onSearch, onLocation, loading, darkMode }: SearchBarProps) {
   const [city, setCity] = useState('');
 
   const handleSubmit = (e: FormEvent) => {
@@ -22,6 +23,19 @@ function SearchBar({ onSearch, loading, darkMode }: SearchBarProps) {
           ? 'bg-white/10 border-white/20'
           : 'bg-white/40 border-white/50'
       }`}>
+        <button
+          type="button"
+          onClick={onLocation}
+          disabled={loading}
+          className={`p-3 rounded-xl transition-all duration-300 group ${
+            darkMode
+              ? 'hover:bg-white/10 text-gray-300 hover:text-white'
+              : 'hover:bg-black/5 text-gray-600 hover:text-gray-900'
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
+          title="Use current location"
+        >
+          <MapPin className="w-6 h-6" />
+        </button>
         <input
           type="text"
           placeholder="Enter city name..."
